@@ -1,4 +1,5 @@
-﻿@model SPaPS.Models.AccountModels.ChangeUserInfo
+﻿@using SPaPS.Enums;
+@model SPaPS.Models.AccountModels.ChangeUserInfo
 
 @{
     ViewData["Title"] = "Change User Information";
@@ -13,19 +14,19 @@
     <div class="row">
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <input asp-for="Name" type="text" class="form-control" placeholder="Name">
+                <input asp-for="Name" type="text" class="form-control" placeholder="Name" onchange="showFiledOfCompany(this)" required>
                 <label asp-for="Name"></label>
             </div>
         </div>
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <input asp-for="IdNo" type="number" class="form-control" placeholder="IdNo">
+                <input asp-for="IdNo" type="number" class="form-control" placeholder="IdNo" required>
                 <label asp-for="IdNo"></label>
             </div>
         </div>
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <select asp-for="ClientTypeId" asp-items="@ViewBag.ClientTypes" class="form-select">
+                <select asp-for="ClientTypeId" asp-items="@ViewBag.ClientTypes" class="form-select" required>
                     <option value="">-- Избери --</option>
                 </select>
                 <label asp-for="ClientTypeId"></label>
@@ -33,19 +34,19 @@
         </div>
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="PhoneNumber">
+                <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="PhoneNumber" required>
                 <label asp-for="PhoneNumber"></label>
             </div>
         </div>      
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <input asp-for="Address" type="text" class="form-control" placeholder="Address">
+                <input asp-for="Address" type="text" class="form-control" placeholder="Address" required required>
                 <label asp-for="Address"></label>
             </div>
         </div>
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <select asp-for="CityId" asp-items="@ViewBag.Cities" class="form-select">
+                <select asp-for="CityId" asp-items="@ViewBag.Cities" class="form-select" required>
                     <option value="">-- Избери --</option>
                 </select>
                 <label asp-for="CityId"></label>
@@ -53,15 +54,69 @@
         </div>
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <select asp-for="CountryId" asp-items="@ViewBag.Countries" class="form-select">
+                <select asp-for="CountryId" asp-items="@ViewBag.Countries" class="form-select" required>
                     <option value="">-- Избери --</option>
                 </select>
                 <label asp-for="CountryId"></label>
             </div>
         </div>
     </div>
+    
+    @if (User.IsInRole(EnumRoles.Company.ToString()))
+    {
+        <!-- NoOfEmployees field -->
+        <div class="col-md-3 col-6">
+            <div class="form-floating mb-3">
+                <input asp-for="NoOfEmployees" type="number" class="form-control" placeholder="NoOfEmployees" required>
+                <label asp-for="NoOfEmployees"></label>
+            </div>
+        </div>
+
+        <!-- DateOfEstablishment field -->
+        <div class="col-md-3 col-6">
+            <div class="form-floating mb-3">
+                <input asp-for="DateOfEstablishment" type="date" class="form-control" placeholder="DateOfEstablishment" max="@DateTime.Now.ToString("yyyy-MM-dd")">
+                <label asp-for="DateOfEstablishment"></label>
+            </div>
+        </div>
+
+        <!-- ServiceId field (if applicable) -->
+        <div class="col-md-3 col-6">
+            <div class="form-floating mb-3">
+                <select asp-for="ServiceId" class="form-select" asp-items="@ViewBag.Services">
+                    <option value="">-- Избери --</option>
+                </select>
+                <label asp-for="ServiceId"></label>
+            </div>
+        </div>
+    }
 
     <button type="submit" class="btn btn-primary">Промени</button>
 </form>
+
+
+
 <p class="col-12 text-center text-danger">@Html.ValidationMessage("Error")</p>
 <h4 class="col-12 text-center text-success">@Html.ValidationMessage("Success")</h4>
+
+<script>
+    function showFiledOfCompany(role) {
+
+        console.log('role.value')
+        if (role.value == 'Company') {
+            $('#divNoOfEmployees').removeClass("d-none");
+            $('#divDateOfEstablishment').removeClass("d-none");
+            $('#divServiceId').removeClass("d-none");
+
+        }
+        else {
+            $('#divNoOfEmployees').addClass("d-none");
+            $('#divDateOfEstablishment').addClass("d-none");
+            $('#divServiceId').addClass("d-none");
+            $('#NoOfEmployees').val("");
+            $('#DateOfEstablishment').val("");
+            $('#ServiceId').val("");
+
+        }
+    }
+</script>

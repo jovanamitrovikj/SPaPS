@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Postal.AspNetCore;
 using SPaPS.Data;
+using SPaPS.Enums;
 using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +53,16 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Home/Index";
     options.SlidingExpiration = true;
 });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(nameof(AuthorizePolicy.AdminAuthPolicy),
+     authpolicy => authpolicy.RequireRole(EnumRoles.Admin.ToString()));
+    options.AddPolicy(nameof(AuthorizePolicy.CompanyAuthPolicy),
+     authpolicy => authpolicy.RequireRole(EnumRoles.Company.ToString()));
+    options.AddPolicy(nameof(AuthorizePolicy.ClientAuthPolicy),
+     authpolicy => authpolicy.RequireRole(EnumRoles.Client.ToString()));
+});
+
 
 var app = builder.Build();
 

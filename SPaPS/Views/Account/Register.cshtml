@@ -12,7 +12,7 @@
     <div class="row">
         <div class="col-md-3 col-6">
             <div class="form-floating mb-3">
-                <select asp-for="Role" asp-items="@ViewBag.Roles" class="form-select">
+                <select asp-for="Role" asp-items="@ViewBag.Roles" class="form-select" onchange="showFiledOfCompany(this)">
                     <option value="">-- Избери --</option>
                 </select>
                 <label asp-for="Role"></label>
@@ -48,9 +48,9 @@
                 <label asp-for="IdNo"></label>
             </div>
         </div>
-        <div class="col-md-3 col-6">
+        <div class="col-md-3 col-6">          
             <div class="form-floating mb-3">
-                <select asp-for="ClientTypeId" asp-items="@ViewBag.ClientTypes" class="form-select">
+                <select asp-for="ClientTypeId" class="form-select" asp-items="@ViewBag.ClientTypes">
                     <option value="">-- Избери --</option>
                 </select>
                 <label asp-for="ClientTypeId"></label>
@@ -69,19 +69,29 @@
                 <select asp-for="CountryId" asp-items="@ViewBag.Countries" class="form-select">
                     <option value="">-- Избери --</option>
                 </select>
+                <span asp-validation-for="CountryId" class="text-danger"></span>
                 <label asp-for="CountryId"></label>
             </div>
         </div>
-        <div class="col-md-3 col-6 NoOfEmployees d-none">
+        <div id="divNoOfEmployees" class="col-md-3 col-6  d-none">
             <div class="form-floating mb-3">
                 <input asp-for="NoOfEmployees" type="number" class="form-control" placeholder="NoOfEmployees">
                 <label asp-for="NoOfEmployees"></label>
             </div>
         </div>
-        <div class="col-md-3 col-6 DateOfEstablishment d-none">
+        <div id="divDateOfEstablishment" class="col-md-3 col-6 d-none">
             <div class="form-floating mb-3">
-                <input asp-for="DateOfEstablishment" type="date" class="form-control" placeholder="DateOfEstablishment">
+                <input asp-for="DateOfEstablishment" type="date" class="form-control" placeholder="DateOfEstablishment" max="@DateTime.Now.ToString("yyyy-MM-dd")">
                 <label asp-for="DateOfEstablishment"></label>
+            </div>
+        </div>
+
+        <div id="divServiceId" class="col-md-3 col-6 d-none">
+            <div class="form-floating mb-3">
+                <select asp-for="ServiceId" class="form-select" asp-items="@ViewBag.Services">
+                    <option value="">-- Избери --</option>
+                </select>
+                <label asp-for="ServiceId"></label>
             </div>
         </div>
         
@@ -92,4 +102,23 @@
 
 <p class="col-12 text-center text-danger">@Html.ValidationMessage("Error")</p>
 <h4 class="col-12 text-center text-success">@Html.ValidationMessage("Success")</h4>
+<script>
+    function showFiledOfCompany(role) {
+        console.log('role.value')
+        if (role.value == 'Company') {
+            $('#divNoOfEmployees').removeClass("d-none");
+            $('#divDateOfEstablishment').removeClass("d-none");
+            $('#divServiceId').removeClass("d-none");
 
+        }
+        else {
+            $('#divNoOfEmployees').addClass("d-none");
+            $('#divDateOfEstablishment').addClass("d-none");
+            $('#divServiceId').addClass("d-none");
+            $('#NoOfEmployees').val("");
+            $('#DateOfEstablishment').val("");
+            $('#ServiceId').val("");
+
+        }
+    }
+</script>

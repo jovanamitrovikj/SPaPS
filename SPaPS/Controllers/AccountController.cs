@@ -42,8 +42,8 @@ namespace SPaPS.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginModel model)
         {
-            var result  = await _signInManager.PasswordSignInAsync(userName: model.Email, password: model.Password, isPersistent: false, lockoutOnFailure: true);
-
+            var result = await _signInManager.PasswordSignInAsync(userName: model.Email, password: model.Password, isPersistent: false, lockoutOnFailure: false);
+            //var result = Microsoft.AspNetCore.Identity.SignInResult.Success;
             if (!result.Succeeded || result.IsLockedOut || result.IsNotAllowed)
             {
                 ModelState.AddModelError("Error", "Погрешно корисничко име или лозинка!");
@@ -56,13 +56,20 @@ namespace SPaPS.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            ViewBag.ClientTypes = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 1).ToList(), "ReferenceId", "Description");
-            ViewBag.Cities = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 2).ToList(), "ReferenceId", "Description");
-            ViewBag.Countries = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 3).ToList(), "ReferenceId", "Description");
+            ViewBag.ClientTypes = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 1).ToList(), "ReferenceTypeId", "ReferenceTypeId");
+            //ViewBag.Cities = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 2).ToList(), "ReferenceTypeId", "ReferenceTypeId");
+            ViewBag.Cities = new SelectList(new List<Reference>(), "ReferenceId", "ReferenceId"); // Empty dropdown
+            ViewBag.Countries = new SelectList(_context.References
+                    .Where(x => x.ReferenceTypeId == 3)
+                    .Select(x => new { x.ReferenceId, x.Description })
+                    .ToList(), "ReferenceId", "Description", 10); // Set initialSelectedValue to 10
+            //ViewBag.Countries = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 3).ToList(), "ReferenceTypeId", "ReferenceTypeId");
             ViewBag.Roles = new SelectList(_roleManager.Roles.ToList(), "Name", "Name");
+            ViewBag.Services = new SelectList(_context.Services.ToList(), "ServiceId", "Description");
+
 
             return View();
-        }
+          }
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterModel model)
@@ -112,7 +119,7 @@ namespace SPaPS.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-            var callback = Url.Action(action: "ResetPassword", controller: "Account", values: new { token, email = user.Email}, HttpContext.Request.Scheme);
+            var callback = Url.Action(action: "ResetPassword", controller: "Account", values: new { token, email = user.Email }, HttpContext.Request.Scheme);
 
             /* https://localhost:5001/Account/ResetPassword?token=123asdrew123&email=nikola.stankovski@foxit.mk */
 
@@ -123,14 +130,15 @@ namespace SPaPS.Controllers
                 Username = user.Email,
                 Callback = callback,
                 Token = token,
-                RequestPath = _emailService.PostalRequest(Request),                 
+                RequestPath = _emailService.PostalRequest(Request),
             };
 
             await _emailService.SendEmailAsync(emailSetUp);
-
             TempData["Success"] = "Успешно креиран корисник!";
-
+            
             return RedirectToAction(nameof(Login));
+            
+        
         }
 
 
@@ -188,6 +196,12 @@ namespace SPaPS.Controllers
 
             var user = await _userManager.FindByEmailAsync(model.Email);
 
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                ModelState.AddModelError("Error", "New password and confirmation password do not match.");
+                return View(model);
+            }
+
             var resetPassword = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
 
             if (!resetPassword.Succeeded)
@@ -215,6 +229,12 @@ namespace SPaPS.Controllers
             var loggedInUserEmail = User.Identity.Name;
 
             var user = await _userManager.FindByEmailAsync(loggedInUserEmail);
+
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                ModelState.AddModelError("Error", "New password and confirmation password do not match.");
+                return View(model);
+            }
 
             var changePassword = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
 
@@ -247,8 +267,9 @@ namespace SPaPS.Controllers
             var clientUser = await _context.Clients.Where(x => x.UserId == applicationUser.Id).FirstOrDefaultAsync();
 
             ViewBag.ClientTypes = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 1).ToList(), "ReferenceId", "Description");
-            ViewBag.Cities = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 2).ToList(), "ReferenceId", "Description");
-            ViewBag.Countries = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 3).ToList(), "ReferenceId", "Description");
+            ViewBag.Cities = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 2).ToList(), "ReferenceTypeId", "Description");
+            ViewBag.Countries = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 1).ToList(), "ReferenceId", "Description");
+            ViewBag.Services = new SelectList(_context.Services.ToList(), "ServiceId", "Description");
 
             ChangeUserInfo model = new ChangeUserInfo()
             {
@@ -269,9 +290,9 @@ namespace SPaPS.Controllers
         public async Task<IActionResult> ChangeUserInfo(ChangeUserInfo model)
         {
             ViewBag.ClientTypes = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 1).ToList(), "ReferenceId", "Description");
-            ViewBag.Cities = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 2).ToList(), "ReferenceId", "Description");
-            ViewBag.Countries = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 3).ToList(), "ReferenceId", "Description");
-
+            ViewBag.Cities = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 2).ToList(), "ReferenceTypeId", "Description");
+            ViewBag.Countries = new SelectList(_context.References.Where(x => x.ReferenceTypeId == 1).ToList(), "ReferenceId", "Description");
+            ViewBag.Services = new SelectList(_context.Services.ToList(), "ServiceId", "Description");
 
             if (!ModelState.IsValid)
             {
@@ -284,6 +305,7 @@ namespace SPaPS.Controllers
 
             var applicationUser = await _userManager.FindByEmailAsync(loggedInUserEmail);
             var clientUser = await _context.Clients.Where(x => x.UserId == applicationUser.Id).FirstOrDefaultAsync();
+
 
             applicationUser.PhoneNumber = model.PhoneNumber;
 
@@ -303,6 +325,7 @@ namespace SPaPS.Controllers
             clientUser.ClientTypeId = model.ClientTypeId;
             clientUser.IdNo = model.IdNo;
             clientUser.UpdatedOn = DateTime.Now;
+
 
             try
             {

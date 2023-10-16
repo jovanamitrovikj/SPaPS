@@ -24,5 +24,10 @@ namespace SPaPS.Models
         public DateTime? DateEstablished { get; set; }
 
         public virtual ICollection<ClientActivity> ClientActivities { get; set; }
+        public virtual ICollection<ClientService> ClientServices { get; set; }
+
+        public virtual ICollection<Request> Requests { get; set; }
+
+
     }
 }

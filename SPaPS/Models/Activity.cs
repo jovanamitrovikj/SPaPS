@@ -16,6 +16,9 @@ namespace SPaPS.Models
         public string? Description { get; set; }
 
         public virtual ICollection<ClientActivity> ClientActivities { get; set; }
+
+        public virtual ICollection<Request> Requests { get; set; }
+
         public virtual ICollection<ServiceActivity> ServiceActivities { get; set; }
     }
 }
